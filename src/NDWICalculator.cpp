@@ -20,6 +20,7 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#define cimg_use_tiff
 #include "NDWICalculator.hpp"
 
 using namespace WaterCoherer;
@@ -28,10 +29,10 @@ auto NDWICalculator::generate_ndwi_layer(TiffImage img1, TiffImage img2,
                                          Method method) -> TiffImage {
     switch (method) {
         case Method::GreenNir:
-            return generate_ndwi_layer_nir_swir(img1, img2);
+            return generate_ndwi_layer_green_nir(img1, img2);
             break;
         case Method::NirSwir:
-            return generate_ndwi_layer_green_nir(img1, img2);
+            return generate_ndwi_layer_nir_swir(img1, img2);
             break;
         default:
             std::cerr << "NDWI Calculator: Invalid method!" << std::endl;
