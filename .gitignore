@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# CMake Build
+**/build/*
+
+# VS Code
+.vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
