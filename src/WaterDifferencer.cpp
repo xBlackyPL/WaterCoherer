@@ -20,30 +20,13 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include "NDWICalculator.hpp"
+#include <utility>
+
+#include "WaterDifferencer.hpp"
 
 using namespace WaterCoherer;
 
-int main(int argc, char const *argv[]) {
-    unsigned int cores = std::thread::hardware_concurrency();
-    std::cout << "Wather Coherer: Application starting..." << std::endl;
-    std::cout << "Wather Coherer: Using " << cores << " logical processors." << std::endl;
-    TiffImage green_layer;
-    green_layer.load_tiff(
-        "../data/LE71880252009264ASN00/L71188025_02520090921_B20.TIF");
-
-    TiffImage nir_layer;
-    nir_layer.load_tiff(
-        "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
-
-    // TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-    //     green_layer, nir_layer, Method::GreenNir,cores);
-    // result.save("result.tiff");
-    auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
-    std::cout << "Wather Coherer: Localized " << water_localization.size() << " pixels of water." << std::endl;
-
-    return 0;
+WaterDifferencer::WaterDifferencer(WaterLocalization water_localization) :
+    water_localization_(std::move(water_localization))
+{
 }

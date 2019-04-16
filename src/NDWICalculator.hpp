@@ -23,6 +23,7 @@
 #define cimg_use_tiff
 #include <iostream>
 #include "CImg.h"
+#include "WaterDifferencer.hpp"
 
 /*
     NDWI = (Xnir - Xswir)/(Xnir + Xswir)
@@ -40,7 +41,6 @@
 
 namespace WaterCoherer {
 using TiffImage = cimg_library::CImg<unsigned char>;
-
 enum class Method { GreenNir, NirSwir };
 
 class NDWICalculator {
@@ -62,8 +62,11 @@ class NDWICalculator {
 
    public:
     static auto generate_ndwi_layer(TiffImage, TiffImage, Method) -> TiffImage;
-    static auto generate_ndiw_layer_high_performance(TiffImage, TiffImage,
+    static auto generate_ndwi_layer_high_performance(TiffImage, TiffImage,
                                                      Method, unsigned int)
         -> TiffImage;
+
+    static auto localize_water(TiffImage, TiffImage, unsigned int)
+        -> WaterLocalization;
 };
 }  // namespace WaterCoherer

@@ -25,6 +25,8 @@
 #include <memory>
 #include <thread>
 #include <vector>
+#include <mutex>
+#include <list>
 
 using namespace WaterCoherer;
 
@@ -43,7 +45,7 @@ auto NDWICalculator::generate_ndwi_layer(TiffImage img1, TiffImage img2,
     }
 }
 
-auto NDWICalculator::generate_ndiw_layer_high_performance(TiffImage img1,
+auto NDWICalculator::generate_ndwi_layer_high_performance(TiffImage img1,
                                                           TiffImage img2,
                                                           Method method,
                                                           unsigned int cores)
@@ -114,7 +116,7 @@ auto NDWICalculator::generate_ndwi_layer_green_nir(TiffImage green_layer,
             float ndwi_level =
                 (green_value - nir_value) / (green_value + nir_value);
 
-            if (ndwi_level >= 0.4f) {
+            if (ndwi_level >= 0.3f) {
                 result(x, y) = static_cast<unsigned char>(255);
             } else {
                 result(x, y) = 0;
@@ -131,8 +133,6 @@ auto NDWICalculator::generate_ndwi_layer_nir_swir_high_performance(
     return generate_ndwi_layer_green_nir(nir_layer, swir_layer);
 }
 
-auto method(TiffImage& result) -> TiffImage { return result; }
-
 auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
     TiffImage green_layer, TiffImage nir_layer, unsigned int cores)
     -> TiffImage {
@@ -140,7 +140,6 @@ auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
     TiffImage result(green_layer.width(), green_layer.height(),
                      green_layer.depth(), 1);
 
-    auto start = std::chrono::system_clock::now();
     for (unsigned int i = 0UL; i < cores; ++i) {
         threadPool.emplace_back(
             std::thread([i, cores, &result, &green_layer, &nir_layer]() {
@@ -156,7 +155,7 @@ auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
                         if (green_value > 1.f && nir_value > 1.f) {
                             float ndwi_level = (green_value - nir_value) /
                                                (green_value + nir_value);
-                            result(x, y) = ndwi_level >= 0.4f ? 255 : 0;
+                            result(x, y) = ndwi_level >= 0.35f ? 255 : 0;
                         }
                     }
                 }
@@ -166,9 +165,43 @@ auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
     for (auto&& thread : threadPool) {
         thread.join();
     }
-    auto stop = std::chrono::system_clock::now();
+    return result;
+}
 
-    std::chrono::duration<double> elapsed_time = stop - start;
-    std::cout << elapsed_time.count() << std::endl;
+auto NDWICalculator::localize_water(TiffImage green_layer, TiffImage nir_layer,
+                                    unsigned int cores) -> WaterLocalization {
+    std::vector<std::thread> threadPool;
+    std::mutex result_mutex;
+    WaterLocalization result;
+
+    for (unsigned int i = 0UL; i < cores; ++i) {
+        threadPool.emplace_back(
+            std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex]() {
+                int height = green_layer.height() / cores;
+                int start = i > 0 ? height * i : height * i + 1;
+                int stop =
+                    i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
+
+                for (int y = start; y < stop - 1; ++y) {
+                    for (int x = 0; x < green_layer.width(); ++x) {
+                        float green_value = green_layer(x, y);
+                        float nir_value = nir_layer(x, y);
+                        if (green_value > 1.f && nir_value > 1.f) {
+                            float ndwi_level = (green_value - nir_value) /
+                                               (green_value + nir_value);
+                            if (ndwi_level >= 0.35f) {
+                                std::lock_guard<std::mutex> guard(result_mutex);
+                                result.emplace_back(std::make_pair(x, y));
+                            }
+                        }
+                    }
+                }
+            }));
+    }
+
+    for (auto&& thread : threadPool) {
+        thread.join();
+    }
+
     return result;
 }
