@@ -21,8 +21,8 @@
 //  DEALINGS IN THE SOFTWARE.
 
 #define cimg_use_tiff
-#include "CImg.h"
 #include <iostream>
+#include "CImg.h"
 
 /*
     NDWI = (Xnir - Xswir)/(Xnir + Xswir)
@@ -44,9 +44,8 @@ using TiffImage = cimg_library::CImg<unsigned char>;
 enum class Method { GreenNir, NirSwir };
 
 class NDWICalculator {
-  private:
-    static auto generate_ndwi_layer_nir_swir(TiffImage, TiffImage) 
-        -> TiffImage;
+   private:
+    static auto generate_ndwi_layer_nir_swir(TiffImage, TiffImage) -> TiffImage;
 
     static auto generate_ndwi_layer_green_nir(TiffImage, TiffImage)
         -> TiffImage;
@@ -61,10 +60,10 @@ class NDWICalculator {
                                                                unsigned int)
         -> TiffImage;
 
-  public:
+   public:
     static auto generate_ndwi_layer(TiffImage, TiffImage, Method) -> TiffImage;
     static auto generate_ndiw_layer_high_performance(TiffImage, TiffImage,
                                                      Method, unsigned int)
         -> TiffImage;
 };
-} // namespace WaterCoherer
+}  // namespace WaterCoherer

@@ -22,24 +22,24 @@
 
 #define cimg_use_tiff
 #include "NDWICalculator.hpp"
+#include <memory>
 #include <thread>
 #include <vector>
-#include <memory>
 
 using namespace WaterCoherer;
 
 auto NDWICalculator::generate_ndwi_layer(TiffImage img1, TiffImage img2,
                                          Method method) -> TiffImage {
     switch (method) {
-    case Method::GreenNir:
-        return generate_ndwi_layer_green_nir(img1, img2);
-        break;
-    case Method::NirSwir:
-        return generate_ndwi_layer_nir_swir(img1, img2);
-        break;
-    default:
-        std::cerr << "NDWI Calculator: Invalid method!" << std::endl;
-        std::exit(1);
+        case Method::GreenNir:
+            return generate_ndwi_layer_green_nir(img1, img2);
+            break;
+        case Method::NirSwir:
+            return generate_ndwi_layer_nir_swir(img1, img2);
+            break;
+        default:
+            std::cerr << "NDWI Calculator: Invalid method!" << std::endl;
+            std::exit(1);
     }
 }
 
@@ -49,17 +49,18 @@ auto NDWICalculator::generate_ndiw_layer_high_performance(TiffImage img1,
                                                           unsigned int cores)
     -> TiffImage {
     switch (method) {
-    case Method::GreenNir:
-        return generate_ndwi_layer_green_nir_high_performance(img1, img2,
-                                                              cores);
-        break;
-    case Method::NirSwir:
-        return generate_ndwi_layer_nir_swir_high_performance(img1, img2, cores);
-        break;
-    default:
-        std::cerr << "NDWI Calculator - High performanace: Invalid method!"
-                  << std::endl;
-        std::exit(1);
+        case Method::GreenNir:
+            return generate_ndwi_layer_green_nir_high_performance(img1, img2,
+                                                                  cores);
+            break;
+        case Method::NirSwir:
+            return generate_ndwi_layer_nir_swir_high_performance(img1, img2,
+                                                                 cores);
+            break;
+        default:
+            std::cerr << "NDWI Calculator - High performanace: Invalid method!"
+                      << std::endl;
+            std::exit(1);
     }
 }
 
@@ -126,54 +127,48 @@ auto NDWICalculator::generate_ndwi_layer_green_nir(TiffImage green_layer,
 auto NDWICalculator::generate_ndwi_layer_nir_swir_high_performance(
     TiffImage nir_layer, TiffImage swir_layer, unsigned int cores)
     -> TiffImage {
+    // TODO: Implement high_performance method
     return generate_ndwi_layer_green_nir(nir_layer, swir_layer);
 }
 
-void threadMethod(const TiffImage &green_layer, const TiffImage &nir_layer,
-                  unsigned char * data, unsigned int index, unsigned int cores) {
-
-    int height = green_layer.height() / cores;
-
-    int start = index > 0 ? height * index : height * index + 1;
-
-    int stop =
-        index < cores - 1 ? height * (index + 1) + 1 : (height * (index + 1));
-
-    for (int y = start; y < stop - 1; ++y) {
-        for (int x = 0; x < green_layer.width(); ++x) {
-            float green_value = green_layer(x, y);
-            float nir_value = nir_layer(x, y);
-            if (green_value < 1.f || nir_value < 1.f) {
-                data[y * green_layer.width() + x] = 0;
-            } else {
-                float ndwi_level =
-                    (green_value - nir_value) / (green_value + nir_value);
-
-                if (ndwi_level >= 0.4f) {
-                    data[y * green_layer.width() + x] = static_cast<unsigned char>(255);
-                } else {
-                    data[y * green_layer.width() + x]= 0;
-                }
-            }
-        }
-    }
-}
+auto method(TiffImage& result) -> TiffImage { return result; }
 
 auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
     TiffImage green_layer, TiffImage nir_layer, unsigned int cores)
     -> TiffImage {
-
-    auto data = new unsigned char[green_layer.width() * green_layer.height()];
     std::vector<std::thread> threadPool;
+    TiffImage result(green_layer.width(), green_layer.height(),
+                     green_layer.depth(), 1);
 
+    auto start = std::chrono::system_clock::now();
     for (unsigned int i = 0UL; i < cores; ++i) {
-        threadPool.emplace_back(std::thread(
-            [=]() { threadMethod(green_layer, nir_layer, data, i, cores); }));
+        threadPool.emplace_back(
+            std::thread([i, cores, &result, &green_layer, &nir_layer]() {
+                int height = green_layer.height() / cores;
+                int start = i > 0 ? height * i : height * i + 1;
+                int stop =
+                    i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
+
+                for (int y = start; y < stop - 1; ++y) {
+                    for (int x = 0; x < green_layer.width(); ++x) {
+                        float green_value = green_layer(x, y);
+                        float nir_value = nir_layer(x, y);
+                        if (green_value > 1.f && nir_value > 1.f) {
+                            float ndwi_level = (green_value - nir_value) /
+                                               (green_value + nir_value);
+                            result(x, y) = ndwi_level >= 0.4f ? 255 : 0;
+                        }
+                    }
+                }
+            }));
     }
 
-    for (auto &&thread : threadPool) {
+    for (auto&& thread : threadPool) {
         thread.join();
     }
-    TiffImage result(data,green_layer.width(), green_layer.height());
+    auto stop = std::chrono::system_clock::now();
+
+    std::chrono::duration<double> elapsed_time = stop - start;
+    std::cout << elapsed_time.count() << std::endl;
     return result;
 }
