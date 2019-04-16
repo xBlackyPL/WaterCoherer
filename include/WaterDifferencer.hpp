@@ -1,3 +1,5 @@
+#pragma once
+
 // The MIT License (MIT)
 
 // Copyright (c) 2019 Rafał Aleksander
@@ -20,16 +22,20 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#include "CImage.hpp"
+#include "WaterCohererTypes.hpp"
 #include <vector>
+#include <iostream>
 
 namespace WaterCoherer {
 
-using WaterLocalization = std::vector<std::pair<unsigned int, unsigned int>>;
-class WaterDifferencer {
-   private:
-    WaterLocalization water_localization_;
+    class WaterDifferencer {
+    private:
+        WaterLocalization water_localization_;
 
-   public:
-    explicit WaterDifferencer(WaterLocalization);
-};
+    public:
+        explicit WaterDifferencer(WaterLocalization);
+
+        auto generate_clastarized_water_layer() -> TiffImage;
+    };
 }  // namespace WaterCoherer

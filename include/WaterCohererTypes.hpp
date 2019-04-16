@@ -1,3 +1,5 @@
+#pragma once
+
 // The MIT License (MIT)
 
 // Copyright (c) 2019 Rafal Aleksander
@@ -20,12 +22,10 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include <utility>
+#include "CImage.hpp"
+#include <vector>
 
-#include "../include/WaterDifferencer.hpp"
-
-using namespace WaterCoherer;
-
-WaterDifferencer::WaterDifferencer(WaterLocalization water_localization) :
-        water_localization_(std::move(water_localization)) {
+namespace WaterCoherer {
+    using TiffImage = cimg_library::CImg<unsigned char>;
+    using WaterLocalization = std::vector<std::pair<unsigned int, unsigned int>>;
 }

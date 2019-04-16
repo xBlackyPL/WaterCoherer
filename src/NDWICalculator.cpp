@@ -1,3 +1,7 @@
+#include <utility>
+
+#include <utility>
+
 // The MIT License (MIT)
 
 // Copyright (c) 2019 Rafal Aleksander
@@ -20,8 +24,8 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#define cimg_use_tiff
-#include "NDWICalculator.hpp"
+#include "../include/NDWICalculator.hpp"
+
 #include <memory>
 #include <thread>
 #include <vector>
@@ -35,10 +39,8 @@ auto NDWICalculator::generate_ndwi_layer(TiffImage img1, TiffImage img2,
     switch (method) {
         case Method::GreenNir:
             return generate_ndwi_layer_green_nir(img1, img2);
-            break;
         case Method::NirSwir:
             return generate_ndwi_layer_nir_swir(img1, img2);
-            break;
         default:
             std::cerr << "NDWI Calculator: Invalid method!" << std::endl;
             std::exit(1);
@@ -49,16 +51,14 @@ auto NDWICalculator::generate_ndwi_layer_high_performance(TiffImage img1,
                                                           TiffImage img2,
                                                           Method method,
                                                           unsigned int cores)
-    -> TiffImage {
+-> TiffImage {
     switch (method) {
         case Method::GreenNir:
             return generate_ndwi_layer_green_nir_high_performance(img1, img2,
                                                                   cores);
-            break;
         case Method::NirSwir:
             return generate_ndwi_layer_nir_swir_high_performance(img1, img2,
                                                                  cores);
-            break;
         default:
             std::cerr << "NDWI Calculator - High performanace: Invalid method!"
                       << std::endl;
@@ -68,8 +68,10 @@ auto NDWICalculator::generate_ndwi_layer_high_performance(TiffImage img1,
 
 auto NDWICalculator::generate_ndwi_layer_nir_swir(TiffImage nir_layer,
                                                   TiffImage swir_layer)
-    -> TiffImage {
-    TiffImage result(nir_layer.width(), nir_layer.height(), nir_layer.depth(),
+-> TiffImage {
+    TiffImage result(static_cast<const unsigned int>(nir_layer.width()),
+                     static_cast<const unsigned int>(nir_layer.height()),
+                     static_cast<const unsigned int>(nir_layer.depth()),
                      1);
 
     if (nir_layer.height() != swir_layer.height() ||
@@ -78,29 +80,34 @@ auto NDWICalculator::generate_ndwi_layer_nir_swir(TiffImage nir_layer,
     }
 
     cimg_forXY(result, x, y) {
-        float nir_value = nir_layer(x, y);
-        float swir_value = swir_layer(x, y);
-        if (nir_value < 1.f || swir_value < 1.f) {
-            result(x, y) = 0;
-        } else {
-            float ndwi_level =
-                (nir_value - swir_value) / (nir_value + swir_value);
-
-            if (ndwi_level > 1.f) {
-                result(x, y) = static_cast<unsigned char>(255);
+            float nir_value = nir_layer(static_cast<const unsigned int>(x),
+                                        static_cast<const unsigned int>(y));
+            float swir_value = swir_layer(static_cast<const unsigned int>(x),
+                                          static_cast<const unsigned int>(y));
+            if (nir_value < 1.f || swir_value < 1.f) {
+                result(static_cast<const unsigned int>(x), static_cast<const unsigned int>(y)) = 0;
             } else {
-                result(x, y) = 0;
+                float ndwi_level =
+                        (nir_value - swir_value) / (nir_value + swir_value);
+
+                if (ndwi_level > 1.f) {
+                    result(static_cast<const unsigned int>(x),
+                           static_cast<const unsigned int>(y)) = static_cast<unsigned char>(255);
+                } else {
+                    result(static_cast<const unsigned int>(x),
+                           static_cast<const unsigned int>(y)) = 0;
+                }
             }
         }
-    }
     return result;
 }
 
 auto NDWICalculator::generate_ndwi_layer_green_nir(TiffImage green_layer,
                                                    TiffImage nir_layer)
-    -> TiffImage {
-    TiffImage result(green_layer.width(), green_layer.height(),
-                     green_layer.depth(), 1);
+-> TiffImage {
+    TiffImage result(static_cast<const unsigned int>(green_layer.width()),
+                     static_cast<const unsigned int>(green_layer.height()),
+                     static_cast<const unsigned int>(green_layer.depth()), 1);
 
     if (green_layer.height() != green_layer.height() ||
         green_layer.width() != green_layer.width()) {
@@ -108,61 +115,69 @@ auto NDWICalculator::generate_ndwi_layer_green_nir(TiffImage green_layer,
     }
 
     cimg_forXY(result, x, y) {
-        float green_value = green_layer(x, y);
-        float nir_value = nir_layer(x, y);
-        if (green_value < 1.f || nir_value < 1.f) {
-            result(x, y) = 0;
-        } else {
-            float ndwi_level =
-                (green_value - nir_value) / (green_value + nir_value);
-
-            if (ndwi_level >= 0.3f) {
-                result(x, y) = static_cast<unsigned char>(255);
+            float green_value = green_layer(static_cast<const unsigned int>(x),
+                                            static_cast<const unsigned int>(y));
+            float nir_value = nir_layer(static_cast<const unsigned int>(x),
+                                        static_cast<const unsigned int>(y));
+            if (green_value < 1.f || nir_value < 1.f) {
+                result(static_cast<const unsigned int>(x), static_cast<const unsigned int>(y)) = 0;
             } else {
-                result(x, y) = 0;
+                float ndwi_level =
+                        (green_value - nir_value) / (green_value + nir_value);
+
+                if (ndwi_level >= 0.3f) {
+                    result(static_cast<const unsigned int>(x),
+                           static_cast<const unsigned int>(y)) = static_cast<unsigned char>(255);
+                } else {
+                    result(static_cast<const unsigned int>(x),
+                           static_cast<const unsigned int>(y)) = 0;
+                }
             }
         }
-    }
     return result;
 }
 
 auto NDWICalculator::generate_ndwi_layer_nir_swir_high_performance(
-    TiffImage nir_layer, TiffImage swir_layer, unsigned int cores)
-    -> TiffImage {
+        TiffImage nir_layer, TiffImage swir_layer, unsigned int cores)
+-> TiffImage {
     // TODO: Implement high_performance method
-    return generate_ndwi_layer_green_nir(nir_layer, swir_layer);
+    return generate_ndwi_layer_green_nir(std::move(nir_layer), std::move(swir_layer));
 }
 
 auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
-    TiffImage green_layer, TiffImage nir_layer, unsigned int cores)
-    -> TiffImage {
-    std::vector<std::thread> threadPool;
-    TiffImage result(green_layer.width(), green_layer.height(),
-                     green_layer.depth(), 1);
+        TiffImage green_layer, TiffImage nir_layer, unsigned int cores)
+-> TiffImage {
+    std::vector<std::thread> thread_pool;
+    TiffImage result(static_cast<const unsigned int>(green_layer.width()),
+                     static_cast<const unsigned int>(green_layer.height()),
+                     static_cast<const unsigned int>(green_layer.depth()), 1);
 
     for (unsigned int i = 0UL; i < cores; ++i) {
-        threadPool.emplace_back(
-            std::thread([i, cores, &result, &green_layer, &nir_layer]() {
-                int height = green_layer.height() / cores;
-                int start = i > 0 ? height * i : height * i + 1;
-                int stop =
-                    i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
+        thread_pool.emplace_back(
+                std::thread([i, cores, &result, &green_layer, &nir_layer]() {
+                    unsigned int height = green_layer.height() / cores;
+                    unsigned int start = i > 0 ? height * i : height * i + 1;
+                    unsigned int stop =
+                            i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
 
-                for (int y = start; y < stop - 1; ++y) {
-                    for (int x = 0; x < green_layer.width(); ++x) {
-                        float green_value = green_layer(x, y);
-                        float nir_value = nir_layer(x, y);
-                        if (green_value > 1.f && nir_value > 1.f) {
-                            float ndwi_level = (green_value - nir_value) /
-                                               (green_value + nir_value);
-                            result(x, y) = ndwi_level >= 0.35f ? 255 : 0;
+                    for (unsigned int y = start; y < stop - 1; ++y) {
+                        for (unsigned int x = 0; x < static_cast<unsigned int>(green_layer.width());
+                             ++x) {
+                            float green_value = green_layer(x, y);
+                            float nir_value = nir_layer(x, y);
+
+                            if (green_value > 1.f && nir_value > 1.f) {
+                                float ndwi_level = (green_value - nir_value) /
+                                                   (green_value + nir_value);
+                                result(x, y) =
+                                        static_cast<unsigned char>(ndwi_level >= 0.35f ? 255 : 0);
+                            }
                         }
                     }
-                }
-            }));
+                }));
     }
 
-    for (auto&& thread : threadPool) {
+    for (auto &&thread : thread_pool) {
         thread.join();
     }
     return result;
@@ -170,36 +185,37 @@ auto NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
 
 auto NDWICalculator::localize_water(TiffImage green_layer, TiffImage nir_layer,
                                     unsigned int cores) -> WaterLocalization {
-    std::vector<std::thread> threadPool;
+    std::vector<std::thread> thread_pool;
     std::mutex result_mutex;
     WaterLocalization result;
 
     for (unsigned int i = 0UL; i < cores; ++i) {
-        threadPool.emplace_back(
-            std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex]() {
-                int height = green_layer.height() / cores;
-                int start = i > 0 ? height * i : height * i + 1;
-                int stop =
-                    i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
+        thread_pool.emplace_back(
+                std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex]() {
+                    unsigned int height = green_layer.height() / cores;
+                    unsigned int start = i > 0 ? height * i : height * i + 1;
+                    unsigned int stop =
+                            i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
 
-                for (int y = start; y < stop - 1; ++y) {
-                    for (int x = 0; x < green_layer.width(); ++x) {
-                        float green_value = green_layer(x, y);
-                        float nir_value = nir_layer(x, y);
-                        if (green_value > 1.f && nir_value > 1.f) {
-                            float ndwi_level = (green_value - nir_value) /
-                                               (green_value + nir_value);
-                            if (ndwi_level >= 0.35f) {
-                                std::lock_guard<std::mutex> guard(result_mutex);
-                                result.emplace_back(std::make_pair(x, y));
+                    for (unsigned int y = start; y < stop - 1; ++y) {
+                        for (unsigned int x = 0; x < static_cast<unsigned int>(green_layer.width());
+                             ++x) {
+                            float green_value = green_layer(x, y);
+                            float nir_value = nir_layer(x, y);
+                            if (green_value > 1.f && nir_value > 1.f) {
+                                float ndwi_level = (green_value - nir_value) /
+                                                   (green_value + nir_value);
+                                if (ndwi_level >= 0.35f) {
+                                    std::lock_guard<std::mutex> guard(result_mutex);
+                                    result.emplace_back(std::make_pair(x, y));
+                                }
                             }
                         }
                     }
-                }
-            }));
+                }));
     }
 
-    for (auto&& thread : threadPool) {
+    for (auto &&thread : thread_pool) {
         thread.join();
     }
 
