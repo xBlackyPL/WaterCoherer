@@ -27,6 +27,8 @@
 using namespace WaterCoherer;
 
 int main(int argc, char const *argv[]) {
+    auto start = std::chrono::system_clock::now();
+
     TiffImage green_layer;
     green_layer.load_tiff(
         "../data/LE71880252009264ASN00/L71188025_02520090921_B20.TIF");
@@ -35,13 +37,13 @@ int main(int argc, char const *argv[]) {
     nir_layer.load_tiff(
         "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
 
-    auto start = std::chrono::system_clock::now();
-    TiffImage result = NDWICalculator::generate_ndwi_layer(
-        green_layer, nir_layer, Method::GreenNir);
+    TiffImage result = NDWICalculator::generate_ndiw_layer_high_performance(
+        green_layer, nir_layer, Method::GreenNir, 4);
+
+    result.save("result.tiff");
     auto stop = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_time = stop-start;
     std::cout << "Time: " << elapsed_time.count() << "[s]" << std::endl;
 
-    result.save("result.tiff");
     return 0;
 }
