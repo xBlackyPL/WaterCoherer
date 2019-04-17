@@ -25,27 +25,43 @@
 #include <chrono>
 
 #include "../include/NDWICalculator.hpp"
+#include "../include/CloudDetection.hpp"
 
 using namespace WaterCoherer;
 
 int main(int argc, char const *argv[]) {
-    unsigned int cores = std::thread::hardware_concurrency();
-    std::cout << "Water Coherer: Application starting..." << std::endl;
-    std::cout << "Water Coherer: Using " << cores << " logical processors." << std::endl;
-    TiffImage green_layer;
-    green_layer.load_tiff(
-            "../data/LE71880252009264ASN00/L71188025_02520090921_B20.TIF");
+  unsigned int cores = std::thread::hardware_concurrency();
+  std::cout << "Water Coherer: Application starting..." << std::endl;
+  std::cout << "Water Coherer: Using " << cores << " logical processors." << std::endl;
+  TiffImage green_layer;
+  green_layer.load_tiff(
+    "../data/LE71880252009264ASN00/L71188025_02520090921_B20.TIF");
 
-    TiffImage nir_layer;
-    nir_layer.load_tiff(
-            "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
+  TiffImage nir_layer;
+  nir_layer.load_tiff(
+    "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
 
-    // TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-    //     green_layer, nir_layer, Method::GreenNir,cores);
-    // result.save("result.tiff");
-    auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
-    std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
-              << std::endl;
+//   TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
+//       green_layer, nir_layer, NDWICalculator::Method::GreenNir,cores);
+//   result.save("result.tiff");
 
-    return 0;
+
+//  auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
+//  std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
+//            << std::endl;
+//
+//  WaterDifferencer water_differencer(water_localization);
+//  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(nir_layer);
+//  water_clasterized_water.save("water_clasterized.tiff");
+
+  TiffImage red_layer;
+  red_layer.load_tiff(
+    "../data/LE71880252009264ASN00/L71188025_02520090921_B10.TIF");
+
+  auto cloud_localization = CloudDetection::localize_clouds(red_layer, cores);
+  auto cloud_layer = CloudDetection::generate_cloud_layer(cloud_localization,
+                                                          red_layer.width(), red_layer.height());
+
+  cloud_layer.save("clouds.tiff");
+  return 0;
 }

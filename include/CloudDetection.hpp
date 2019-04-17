@@ -1,3 +1,5 @@
+#pragma once
+
 // The MIT License (MIT)
 
 // Copyright (c) 2019 Rafal Aleksander
@@ -20,25 +22,17 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include <utility>
+#include "WaterCohererTypes.hpp"
+#include "CImage.hpp"
+#include <vector>
 
-#include "../include/WaterDifferencer.hpp"
+namespace WaterCoherer {
+  using CloundPositions = std::vector<std::pair<unsigned int, unsigned int>>;
 
-using namespace WaterCoherer;
-
-WaterDifferencer::WaterDifferencer(WaterLocalization water_localization) :
-  water_localization_(std::move(water_localization)) {
-}
-
-TiffImage WaterDifferencer::generate_clasterized_water_layer(const TiffImage &image_layer) {
-  TiffImage result(image_layer.width(), image_layer.height(), 1, 3);
-
-  for (const auto &water_pixel: water_localization_) {
-    if (image_layer(water_pixel.first, water_pixel.second) >= 17.f) {
-      result(water_pixel.first, water_pixel.second, 1) = 255;
-    } else {
-      result(water_pixel.first, water_pixel.second, 2) = 255;
-    }
-  }
-  return result;
+  class CloudDetection {
+  public:
+    static CloundPositions localize_clouds(const TiffImage &, unsigned int);
+    static TiffImage generate_cloud_layer(const CloundPositions&, unsigned int width, unsigned
+    int height);
+  };
 }

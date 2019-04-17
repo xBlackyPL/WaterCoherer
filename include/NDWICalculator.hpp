@@ -41,35 +41,29 @@
 */
 
 namespace WaterCoherer {
-    class NDWICalculator {
-    private:
-        static auto generate_ndwi_layer_nir_swir(TiffImage, TiffImage) -> TiffImage;
+  class NDWICalculator {
+  private:
+    static TiffImage generate_ndwi_layer_nir_swir(const TiffImage&, const TiffImage&);
 
-        static auto generate_ndwi_layer_green_nir(TiffImage, TiffImage)
-        -> TiffImage;
+    static TiffImage generate_ndwi_layer_green_nir(const TiffImage&, const TiffImage&);
 
-        static auto generate_ndwi_layer_nir_swir_high_performance(TiffImage,
-                                                                  TiffImage,
-                                                                  unsigned int)
-        -> TiffImage;
+    static TiffImage
+    generate_ndwi_layer_nir_swir_high_performance(const TiffImage&, const TiffImage&, unsigned int);
 
-        static auto generate_ndwi_layer_green_nir_high_performance(TiffImage,
-                                                                   TiffImage,
-                                                                   unsigned int)
-        -> TiffImage;
+    static TiffImage
+    generate_ndwi_layer_green_nir_high_performance(const TiffImage&, const TiffImage&, unsigned
+    int);
 
-    public:
-        enum class Method {
-            GreenNir, NirSwir
-        };
-
-        static auto generate_ndwi_layer(TiffImage, TiffImage, Method) -> TiffImage;
-
-        static auto generate_ndwi_layer_high_performance(TiffImage, TiffImage,
-                                                         Method, unsigned int)
-        -> TiffImage;
-
-        static auto localize_water(TiffImage, TiffImage, unsigned int)
-        -> WaterLocalization;
+  public:
+    enum class Method {
+      GreenNir, NirSwir
     };
+
+    static TiffImage generate_ndwi_layer(const TiffImage&, const TiffImage&, Method);
+
+    static TiffImage
+    generate_ndwi_layer_high_performance(const TiffImage&, const TiffImage&, Method, unsigned int);
+
+    static WaterLocalization localize_water(const TiffImage&, const TiffImage&, unsigned int);
+  };
 }  // namespace WaterCoherer
