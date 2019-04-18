@@ -23,9 +23,9 @@
 //  DEALINGS IN THE SOFTWARE.
 
 #include "CImage.hpp"
-#include <vector>
+#include <set>
 
 namespace WaterCoherer {
   using TiffImage = cimg_library::CImg<unsigned char>;
-  using PixelPositionContainer = std::vector<std::pair<unsigned int, unsigned int>>;
+  using PixelPositionContainer = std::set<std::pair<unsigned int, unsigned int>>;
 }

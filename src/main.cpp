@@ -62,5 +62,25 @@ int main(int argc, char const *argv[]) {
                                                           red_layer.width(), red_layer.height());
 
   cloud_layer.save("clouds.tiff");
+
+  /*
+   *  auto cloud_layer_0101 = CloudDetection::localize_clouds(red_layer_0101, cores);
+   *  auto cloud_layer_0202 = CloudDetection::localize_clouds(red_layer_0202, cores);
+   *  auto cloud_layer_0303 = CloudDetection::localize_clouds(red_layer_0303, cores);
+   *
+   *  auto total_cloud_layer = sum(cloud_layer0101...0303);
+   *
+   *  auto water_localization_... = NDWICalculator::localize_water(
+   *    green_layer...,
+   *    nir_layer...,
+   *    cloud_layer_0101,
+   *    cores);
+   *
+   *   water_localization_0101.size() != water_localization_0202.size() !=
+   *   water_localization_0303.size()
+   */
+
+
+
   return 0;
 }

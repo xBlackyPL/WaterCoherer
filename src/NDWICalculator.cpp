@@ -141,7 +141,7 @@ PixelPositionContainer NDWICalculator::localize_water(const TiffImage &green_lay
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
               if (ndwi_level >= 0.4f) {
                 std::lock_guard<std::mutex> guard(result_mutex);
-                result.emplace_back(std::make_pair(x, y));
+                result.insert({x, y});
               }
             }
           }

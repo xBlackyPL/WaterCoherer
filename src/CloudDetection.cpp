@@ -20,9 +20,10 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#include "CloudDetection.hpp"
+
 #include <mutex>
 #include <thread>
-#include "CloudDetection.hpp"
 
 using namespace WaterCoherer;
 
@@ -43,7 +44,7 @@ PixelPositionContainer CloudDetection::localize_clouds(const WaterCoherer::TiffI
             float value = image_layer(x, y);
             if (value > 120) {
               std::lock_guard<std::mutex> guard(result_mutex);
-              result.emplace_back(std::make_pair(x, y));
+              result.insert({x, y});
             }
           }
         }
