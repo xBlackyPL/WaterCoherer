@@ -20,13 +20,13 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include <utility>
+#include "WaterDifferencer.hpp"
 
-#include "../include/WaterDifferencer.hpp"
+#include <utility>
 
 using namespace WaterCoherer;
 
-WaterDifferencer::WaterDifferencer(WaterLocalization water_localization) :
+WaterDifferencer::WaterDifferencer(PixelPositionContainer water_localization) :
   water_localization_(std::move(water_localization)) {
 }
 

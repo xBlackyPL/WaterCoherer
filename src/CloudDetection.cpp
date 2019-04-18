@@ -20,15 +20,15 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include "../include/CloudDetection.hpp"
 #include <mutex>
 #include <thread>
+#include "CloudDetection.hpp"
 
 using namespace WaterCoherer;
 
-CloundPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &image_layer,
-                                                unsigned int cores) {
-  CloundPositions result;
+PixelPositionContainer CloudDetection::localize_clouds(const WaterCoherer::TiffImage &image_layer,
+                                                       unsigned int cores) {
+  PixelPositionContainer result;
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
   for (unsigned int i = 0UL; i < cores; ++i) {
@@ -40,7 +40,7 @@ CloundPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &i
 
         for (unsigned int y = start; y < stop - 1; ++y) {
           for (unsigned int x = 0; x < static_cast<unsigned int>(image_layer.width()); ++x) {
-            float value = image_layer(x,y);
+            float value = image_layer(x, y);
             if (value > 120) {
               std::lock_guard<std::mutex> guard(result_mutex);
               result.emplace_back(std::make_pair(x, y));
@@ -56,7 +56,8 @@ CloundPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &i
   return result;
 }
 
-TiffImage CloudDetection::generate_cloud_layer(const CloundPositions &cloud_positions, unsigned
+TiffImage
+CloudDetection::generate_cloud_layer(const PixelPositionContainer &cloud_positions, unsigned
 int width, unsigned int height) {
   TiffImage result(width, height, 1, 1);
   for (const auto &cloud_pixel: cloud_positions) {

@@ -20,12 +20,12 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
+#include "NDWICalculator.hpp"
+#include "CloudDetection.hpp"
+
 #include <iostream>
 #include <thread>
 #include <chrono>
-
-#include "../include/NDWICalculator.hpp"
-#include "../include/CloudDetection.hpp"
 
 using namespace WaterCoherer;
 
@@ -41,18 +41,17 @@ int main(int argc, char const *argv[]) {
   nir_layer.load_tiff(
     "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
 
-//   TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-//       green_layer, nir_layer, NDWICalculator::Method::GreenNir,cores);
-//   result.save("result.tiff");
+  TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
+    green_layer, nir_layer, NDWICalculator::Method::GreenNir, cores);
+  result.save("result.tiff");
 
+  auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
+  std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
+            << std::endl;
 
-//  auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
-//  std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
-//            << std::endl;
-//
-//  WaterDifferencer water_differencer(water_localization);
-//  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(nir_layer);
-//  water_clasterized_water.save("water_clasterized.tiff");
+  WaterDifferencer water_differencer(water_localization);
+  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(nir_layer);
+  water_clasterized_water.save("water_clasterized.tiff");
 
   TiffImage red_layer;
   red_layer.load_tiff(

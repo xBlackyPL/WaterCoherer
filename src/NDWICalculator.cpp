@@ -20,14 +20,13 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include "../include/NDWICalculator.hpp"
+#include "NDWICalculator.hpp"
 
 #include <utility>
 #include <memory>
 #include <thread>
 #include <vector>
 #include <mutex>
-#include <list>
 
 using namespace WaterCoherer;
 
@@ -83,7 +82,7 @@ TiffImage &nir_layer) {
 
 TiffImage NDWICalculator::generate_ndwi_layer_nir_swir_high_performance(
   const TiffImage &nir_layer, const TiffImage &swir_layer, unsigned int cores) {
-  // TODO: Implement high_performance method
+  // TODO: Implement high_performance method for ndwi/swir layers.
   return generate_ndwi_layer_green_nir(nir_layer, swir_layer);
 }
 
@@ -119,11 +118,12 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
   return result;
 }
 
-WaterLocalization NDWICalculator::localize_water(const TiffImage &green_layer,
-                                                 const TiffImage &nir_layer, unsigned int cores) {
+PixelPositionContainer NDWICalculator::localize_water(const TiffImage &green_layer,
+                                                      const TiffImage &nir_layer,
+                                                      unsigned int cores) {
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
-  WaterLocalization result;
+  PixelPositionContainer result;
 
   for (unsigned int i = 0UL; i < cores; ++i) {
     thread_pool.emplace_back(
@@ -178,7 +178,7 @@ TiffImage NDWICalculator::generate_ndwi_layer_high_performance(const TiffImage &
     case Method::NirSwir:
       return generate_ndwi_layer_nir_swir_high_performance(img1, img2, cores);
     default:
-      std::cerr << "NDWI Calculator - High performanace: Invalid method!" << std::endl;
+      std::cerr << "NDWI Calculator - High performance: Invalid method!" << std::endl;
       std::exit(1);
   }
 }

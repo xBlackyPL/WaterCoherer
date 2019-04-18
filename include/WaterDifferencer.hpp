@@ -31,10 +31,10 @@ namespace WaterCoherer {
 
   class WaterDifferencer {
   private:
-    WaterLocalization water_localization_;
+    PixelPositionContainer water_localization_;
 
   public:
-    explicit WaterDifferencer(WaterLocalization);
+    explicit WaterDifferencer(PixelPositionContainer);
 
     TiffImage generate_clasterized_water_layer(const TiffImage&);
   };

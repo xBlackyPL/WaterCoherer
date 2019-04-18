@@ -27,12 +27,11 @@
 #include <vector>
 
 namespace WaterCoherer {
-  using CloundPositions = std::vector<std::pair<unsigned int, unsigned int>>;
-
   class CloudDetection {
   public:
-    static CloundPositions localize_clouds(const TiffImage &, unsigned int);
-    static TiffImage generate_cloud_layer(const CloundPositions&, unsigned int width, unsigned
-    int height);
+    static PixelPositionContainer localize_clouds(const TiffImage &, unsigned int);
+
+    static TiffImage
+    generate_cloud_layer(const PixelPositionContainer &, unsigned int, unsigned int);
   };
 }

@@ -27,5 +27,5 @@
 
 namespace WaterCoherer {
   using TiffImage = cimg_library::CImg<unsigned char>;
-  using WaterLocalization = std::vector<std::pair<unsigned int, unsigned int>>;
+  using PixelPositionContainer = std::vector<std::pair<unsigned int, unsigned int>>;
 }
