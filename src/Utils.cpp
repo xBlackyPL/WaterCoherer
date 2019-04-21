@@ -1,5 +1,3 @@
-#pragma once
-
 // The MIT License (MIT)
 
 // Copyright (c) 2019 Rafal Aleksander
@@ -22,14 +20,31 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include "CImage.hpp"
-#include <map>
-#include <set>
+#include "Utils.hpp"
+#include <algorithm>
 #include <string>
+#include <set>
 
-namespace WaterCoherer {
-  using TiffImage = cimg_library::CImg<unsigned char>;
-  using ImageLayers = std::map<std::string,TiffImage>;
-  using PixelPositions = std::set<std::pair<unsigned int, unsigned int>>;
-  using PixelPositionsLayers = std::map<std::string, PixelPositions>;
+using namespace WaterCoherer;
+
+PixelPositions merge_pixel_positions_layers(PixelPositionsLayers &found_water) {
+  PixelPositions result;
+  for (const auto &entry : found_water) {
+    PixelPositions pixel_set = entry.second;
+    std::merge(pixel_set.begin(), pixel_set.end(), result.begin(), result.end(), std::inserter(result, result.begin()));
+  }
+  return result;
+}
+
+std::vector<std::string> split(const std::string &string, char separator) {
+  std::vector<std::string> result;
+  std::string::size_type position = 0;
+  std::string::size_type previous_position = 0;
+  while ((position = string.find(separator, position)) != std::string::npos) {
+    std::string substring(string.substr(previous_position, position - previous_position));
+    result.push_back(substring);
+    previous_position = ++position;
+  }
+  result.push_back(string.substr(previous_position, position - previous_position));
+  return result;
 }

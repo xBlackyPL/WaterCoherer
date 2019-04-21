@@ -29,9 +29,9 @@
 namespace WaterCoherer {
   class CloudDetection {
   public:
-    static PixelPositionContainer localize_clouds(const TiffImage &, unsigned int);
+    static PixelPositions localize_clouds(const TiffImage &, unsigned int);
 
     static TiffImage
-    generate_cloud_layer(const PixelPositionContainer &, unsigned int, unsigned int);
+    generate_cloud_layer(const PixelPositions &, unsigned int, unsigned int);
   };
 }

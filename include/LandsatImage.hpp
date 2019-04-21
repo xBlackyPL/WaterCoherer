@@ -22,39 +22,18 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include "CImage.hpp"
 #include "WaterCohererTypes.hpp"
-#include "WaterDifferencer.hpp"
 
 namespace WaterCoherer {
-  class NDWICalculator {
+  class LandsatImage {
   private:
-    static TiffImage generate_ndwi_layer_nir_swir(const TiffImage &, const TiffImage &);
-
-    static TiffImage generate_ndwi_layer_green_nir(const TiffImage &, const TiffImage &);
-
-    static TiffImage
-    generate_ndwi_layer_nir_swir_high_performance(const TiffImage &, const TiffImage &,
-                                                  unsigned int);
-
-    static TiffImage
-    generate_ndwi_layer_green_nir_high_performance(const TiffImage &, const TiffImage &,
-                                                   unsigned int);
-
+    std::string image_descripton_;
+    ImageLayers image_layers_;
   public:
-    enum class Method {
-      GreenNir,
-      NirSwir
-    };
-
-    static TiffImage generate_ndwi_layer(const TiffImage &, const TiffImage &, Method);
-
-    static TiffImage
-    generate_ndwi_layer_high_performance(const TiffImage &, const TiffImage &, Method,
-                                         unsigned int);
-
-    static PixelPositions
-    localize_water(const TiffImage &, const TiffImage &,
-                   unsigned int);
+    LandsatImage() = default;
+    ~LandsatImage() = default;
+    void load_image(const char *input_directory_path);
+    void push_back_image_layer(const TiffImage&, unsigned char);
+    const TiffImage& get_image_layer(const std::string&);
   };
-}  // namespace WaterCoherer
+}

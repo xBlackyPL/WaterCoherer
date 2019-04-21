@@ -27,9 +27,9 @@
 
 using namespace WaterCoherer;
 
-PixelPositionContainer CloudDetection::localize_clouds(const WaterCoherer::TiffImage &image_layer,
+PixelPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &image_layer,
                                                        unsigned int cores) {
-  PixelPositionContainer result;
+  PixelPositions result;
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
   for (unsigned int i = 0UL; i < cores; ++i) {
@@ -58,7 +58,7 @@ PixelPositionContainer CloudDetection::localize_clouds(const WaterCoherer::TiffI
 }
 
 TiffImage
-CloudDetection::generate_cloud_layer(const PixelPositionContainer &cloud_positions, unsigned
+CloudDetection::generate_cloud_layer(const PixelPositions &cloud_positions, unsigned
 int width, unsigned int height) {
   TiffImage result(width, height, 1, 1);
   for (const auto &cloud_pixel: cloud_positions) {

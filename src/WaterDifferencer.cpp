@@ -26,7 +26,7 @@
 
 using namespace WaterCoherer;
 
-WaterDifferencer::WaterDifferencer(PixelPositionContainer water_localization) :
+WaterDifferencer::WaterDifferencer(PixelPositions water_localization) :
   water_localization_(std::move(water_localization)) {
 }
 

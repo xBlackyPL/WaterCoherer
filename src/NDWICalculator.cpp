@@ -39,16 +39,16 @@ TiffImage NDWICalculator::generate_ndwi_layer_nir_swir(const TiffImage &nir_laye
   }
 
   cimg_forXY(result, x, y) {
-      float nir_value = nir_layer(static_cast<const unsigned int>(x),
-                                  static_cast<const unsigned int>(y));
+      float nir_value = nir_layer(static_cast<unsigned int>(x),
+                                  static_cast<unsigned int>(y));
 
-      float swir_value = swir_layer(static_cast<const unsigned int>(x),
-                                    static_cast<const unsigned int>(y));
+      float swir_value = swir_layer(static_cast<unsigned int>(x),
+                                    static_cast<unsigned int>(y));
 
       if (nir_value > 1.f && swir_value > 1.f) {
         float ndwi_level = (nir_value - swir_value) / (nir_value + swir_value);
         if (ndwi_level > 1.f) {
-          result(static_cast<const unsigned int>(x), static_cast<const unsigned int>(y)) = 255;
+          result(static_cast<unsigned int>(x), static_cast<unsigned int>(y)) = 255;
         }
       }
     }
@@ -64,16 +64,16 @@ TiffImage &nir_layer) {
   }
 
   cimg_forXY(result, x, y) {
-      float green_value = green_layer(static_cast<const unsigned int>(x),
-                                      static_cast<const unsigned int>(y));
+      float green_value = green_layer(static_cast<unsigned int>(x),
+                                      static_cast<unsigned int>(y));
 
-      float nir_value = nir_layer(static_cast<const unsigned int>(x),
-                                  static_cast<const unsigned int>(y));
+      float nir_value = nir_layer(static_cast<unsigned int>(x),
+                                  static_cast<unsigned int>(y));
 
       if (green_value > 1.f && nir_value > 1.f) {
         float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
         if (ndwi_level >= 0.4f) {
-          result(static_cast<const unsigned int>(x), static_cast<const unsigned int>(y)) = 255;
+          result(static_cast<unsigned int>(x), static_cast<unsigned int>(y)) = 255;
         }
       }
     }
@@ -118,12 +118,12 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
   return result;
 }
 
-PixelPositionContainer NDWICalculator::localize_water(const TiffImage &green_layer,
+PixelPositions NDWICalculator::localize_water(const TiffImage &green_layer,
                                                       const TiffImage &nir_layer,
                                                       unsigned int cores) {
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
-  PixelPositionContainer result;
+  PixelPositions result;
 
   for (unsigned int i = 0UL; i < cores; ++i) {
     thread_pool.emplace_back(

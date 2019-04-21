@@ -22,39 +22,10 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-#include "CImage.hpp"
 #include "WaterCohererTypes.hpp"
-#include "WaterDifferencer.hpp"
-
+#include <map>
+#include <vector>
 namespace WaterCoherer {
-  class NDWICalculator {
-  private:
-    static TiffImage generate_ndwi_layer_nir_swir(const TiffImage &, const TiffImage &);
-
-    static TiffImage generate_ndwi_layer_green_nir(const TiffImage &, const TiffImage &);
-
-    static TiffImage
-    generate_ndwi_layer_nir_swir_high_performance(const TiffImage &, const TiffImage &,
-                                                  unsigned int);
-
-    static TiffImage
-    generate_ndwi_layer_green_nir_high_performance(const TiffImage &, const TiffImage &,
-                                                   unsigned int);
-
-  public:
-    enum class Method {
-      GreenNir,
-      NirSwir
-    };
-
-    static TiffImage generate_ndwi_layer(const TiffImage &, const TiffImage &, Method);
-
-    static TiffImage
-    generate_ndwi_layer_high_performance(const TiffImage &, const TiffImage &, Method,
-                                         unsigned int);
-
-    static PixelPositions
-    localize_water(const TiffImage &, const TiffImage &,
-                   unsigned int);
-  };
-}  // namespace WaterCoherer
+  PixelPositions merge_pixel_sets(PixelPositionsLayers&);
+  std::vector<std::string> split(const std::string &, char);
+}

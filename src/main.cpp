@@ -26,6 +26,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <LandsatImage.hpp>
 
 using namespace WaterCoherer;
 
@@ -33,36 +34,31 @@ int main(int argc, char const *argv[]) {
   unsigned int cores = std::thread::hardware_concurrency();
   std::cout << "Water Coherer: Application starting..." << std::endl;
   std::cout << "Water Coherer: Using " << cores << " logical processors." << std::endl;
-  TiffImage green_layer;
-  green_layer.load_tiff(
-    "../data/LE71880252009264ASN00/L71188025_02520090921_B20.TIF");
 
-  TiffImage nir_layer;
-  nir_layer.load_tiff(
-    "../data/LE71880252009264ASN00/L71188025_02520090921_B40.TIF");
+  LandsatImage image;
+  image.load_image("../data/LE71880252009264ASN00");
 
   TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-    green_layer, nir_layer, NDWICalculator::Method::GreenNir, cores);
+    image.get_image_layer("green"), image.get_image_layer("near infrared"), NDWICalculator::Method::GreenNir, cores);
   result.save("result.tiff");
 
-  auto water_localization = NDWICalculator::localize_water(green_layer, nir_layer, cores);
+  auto water_localization = NDWICalculator::localize_water(image.get_image_layer("green"), image.get_image_layer("near infrared"), cores);
   std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
             << std::endl;
 
   WaterDifferencer water_differencer(water_localization);
-  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(nir_layer);
+  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(image.get_image_layer("near infrared"));
   water_clasterized_water.save("water_clasterized.tiff");
 
-  TiffImage red_layer;
-  red_layer.load_tiff(
-    "../data/LE71880252009264ASN00/L71188025_02520090921_B10.TIF");
+//  TiffImage red_layer;
+//  red_layer.load_tiff(
+//    "../data/LE71880252009264ASN00/L71188025_02520090921_B10.TIF");
+//
+//  auto cloud_localization = CloudDetection::localize_clouds(red_layer, cores);
+//  auto cloud_layer = CloudDetection::generate_cloud_layer(cloud_localization,
+//                                                          red_layer.width(), red_layer.height());
 
-  auto cloud_localization = CloudDetection::localize_clouds(red_layer, cores);
-  auto cloud_layer = CloudDetection::generate_cloud_layer(cloud_localization,
-                                                          red_layer.width(), red_layer.height());
-
-  cloud_layer.save("clouds.tiff");
-
+//  cloud_layer.save("clouds.tiff");
   /*
    *  auto cloud_layer_0101 = CloudDetection::localize_clouds(red_layer_0101, cores);
    *  auto cloud_layer_0202 = CloudDetection::localize_clouds(red_layer_0202, cores);
@@ -79,8 +75,6 @@ int main(int argc, char const *argv[]) {
    *   water_localization_0101.size() != water_localization_0202.size() !=
    *   water_localization_0303.size()
    */
-
-
 
   return 0;
 }
