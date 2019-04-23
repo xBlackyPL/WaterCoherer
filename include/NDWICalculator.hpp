@@ -53,8 +53,9 @@ namespace WaterCoherer {
     generate_ndwi_layer_high_performance(const TiffImage &, const TiffImage &, Method,
                                          unsigned int);
 
-    static PixelPositions
-    localize_water(const TiffImage &, const TiffImage &,
-                   unsigned int);
+    static PixelPositions localize_water(unsigned int, const TiffImage &, const TiffImage &);
+
+    static PixelPositions localize_water(unsigned int, const TiffImage &, const TiffImage &,
+      const PixelPositions&);
   };
 }  // namespace WaterCoherer

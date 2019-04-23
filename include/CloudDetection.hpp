@@ -31,7 +31,6 @@ namespace WaterCoherer {
   public:
     static PixelPositions localize_clouds(const TiffImage &, unsigned int);
 
-    static TiffImage
-    generate_cloud_layer(const PixelPositions &, unsigned int, unsigned int);
+    static TiffImage generate_cloud_layer(const PixelPositions &, unsigned int, unsigned int);
   };
 }

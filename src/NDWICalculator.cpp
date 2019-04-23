@@ -27,6 +27,7 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <NDWICalculator.hpp>
 
 using namespace WaterCoherer;
 
@@ -72,7 +73,7 @@ TiffImage &nir_layer) {
 
       if (green_value > 1.f && nir_value > 1.f) {
         float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-        if (ndwi_level >= 0.4f) {
+        if (ndwi_level >= 0.3f) {
           result(static_cast<unsigned int>(x), static_cast<unsigned int>(y)) = 255;
         }
       }
@@ -105,7 +106,7 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
 
             if (green_value > 1.f && nir_value > 1.f) {
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-              result(x, y) = static_cast<unsigned char>(ndwi_level >= 0.4f ? 255 : 0);
+              result(x, y) = static_cast<unsigned char>(ndwi_level >= 0.3f ? 255 : 0);
             }
           }
         }
@@ -118,9 +119,9 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
   return result;
 }
 
-PixelPositions NDWICalculator::localize_water(const TiffImage &green_layer,
-                                                      const TiffImage &nir_layer,
-                                                      unsigned int cores) {
+PixelPositions NDWICalculator::localize_water(unsigned int cores,
+                                              const TiffImage &green_layer,
+                                              const TiffImage &nir_layer) {
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
   PixelPositions result;
@@ -139,7 +140,49 @@ PixelPositions NDWICalculator::localize_water(const TiffImage &green_layer,
 
             if (green_value > 1.f && nir_value > 1.f) {
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-              if (ndwi_level >= 0.4f) {
+              if (ndwi_level >= 0.3f) {
+                std::lock_guard<std::mutex> guard(result_mutex);
+                result.insert({x, y});
+              }
+            }
+          }
+        }
+      }));
+  }
+
+  for (auto &&thread : thread_pool) {
+    thread.join();
+  }
+
+  return result;
+}
+
+PixelPositions NDWICalculator::localize_water(unsigned int cores, const TiffImage &green_layer,
+                                              const TiffImage &nir_layer,
+                                              const PixelPositions &omitted_pixels) {
+  std::vector<std::thread> thread_pool;
+  std::mutex result_mutex;
+  PixelPositions result;
+
+  for (unsigned int i = 0UL; i < cores; ++i) {
+    thread_pool.emplace_back(
+      std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex, &omitted_pixels]() {
+        unsigned int height = green_layer.height() / cores;
+        unsigned int start = i > 0 ? height * i : height * i + 1;
+        unsigned int stop = i < cores - 1 ? height * (i + 1) + 1 : (height * (i + 1));
+
+        for (unsigned int y = start; y < stop - 1; ++y) {
+          for (unsigned int x = 0; x < static_cast<unsigned int>(green_layer.width()); ++x) {
+            if (omitted_pixels.count({x, y})) {
+              continue;
+            }
+
+            float green_value = green_layer(x, y);
+            float nir_value = nir_layer(x, y);
+
+            if (green_value > 1.f && nir_value > 1.f) {
+              float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
+              if (ndwi_level >= 0.3f) {
                 std::lock_guard<std::mutex> guard(result_mutex);
                 result.insert({x, y});
               }

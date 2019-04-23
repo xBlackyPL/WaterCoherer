@@ -25,7 +25,11 @@
 #include "WaterCohererTypes.hpp"
 #include <map>
 #include <vector>
+
 namespace WaterCoherer {
-  PixelPositions merge_pixel_sets(PixelPositionsLayers&);
+  PixelPositions merge_pixel_positions_layers(PixelPositionsLayers &);
+
   std::vector<std::string> split(const std::string &, char);
+
+  TiffImage generate_layer(const PixelPositions &cloud_positions, int width, int height);
 }

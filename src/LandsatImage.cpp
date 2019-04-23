@@ -25,6 +25,7 @@
 #include "Utils.hpp"
 #include <iostream>
 #include <memory>
+#include <LandsatImage.hpp>
 
 using namespace WaterCoherer;
 
@@ -35,8 +36,8 @@ void LandsatImage::load_image(const char *input_directory_path) {
     return;
   }
   auto directory_path = std::string(input_directory_path);
-//  auto path = split(directory_path, '/');
-//  image_descripton_ = path.back();
+  auto path = split(directory_path, '/');
+  image_descripton_ = path.back();
 
   auto file = readdir(directory);
   do {
@@ -46,17 +47,22 @@ void LandsatImage::load_image(const char *input_directory_path) {
     }
     auto file_extension = file_name.substr(file_name.size() - 3, 3);
     if (file_extension == "TIF") {
-      unsigned long layer_index = std::strtol(file_name.substr(file_name.size() - 6, 1).c_str(),nullptr, 10);
+      int layer_index = std::stoi(file_name.substr(file_name.size() - 6, 1), nullptr,10);
       auto input_image_file_path = directory_path + "/" + file_name;
       TiffImage image_layer{};
       image_layer.load_tiff(input_image_file_path.c_str());
-      push_back_image_layer(image_layer, layer_index);
+      if(widht_ == 0 || height_ == 0) {
+        widht_ = image_layer.width();
+        height_ = image_layer.height();
+      }
+      push_back_image_layer(image_layer, input_image_file_path, layer_index);
     }
   } while (nullptr != (file = readdir(directory)));
   closedir(directory);
 }
 
-void LandsatImage::push_back_image_layer(const TiffImage &image_layer, unsigned char layer_index) {
+void LandsatImage::push_back_image_layer(const TiffImage& image_layer, const std::string& path,
+  int layer_index) {
   if (nullptr != image_layer.data()) {
     switch (layer_index) {
       case 1:
@@ -78,11 +84,44 @@ void LandsatImage::push_back_image_layer(const TiffImage &image_layer, unsigned 
         image_layers_.insert({std::string("thermal"), image_layer});
         break;
       default:
-        std::cerr << "WaterCoherer: Omitted input image layer" << std::endl;
+        std::cerr << "WARNING WaterCoherer: Omitted input image layer:\n" << "\t" + path <<
+        std::endl;
     }
   }
 }
 
 const TiffImage &LandsatImage::get_image_layer(const std::string &layer) {
   return image_layers_.at(layer);
+}
+
+const TiffImage &LandsatImage::view_red_layer() {
+  return get_image_layer("red");
+}
+
+const TiffImage &LandsatImage::view_green_layer() {
+  return get_image_layer("green");
+}
+
+const TiffImage &LandsatImage::view_blue_layer() {
+  return get_image_layer("blue");
+}
+
+const TiffImage &LandsatImage::view_nir_layer() {
+  return get_image_layer("near infrared");
+}
+
+const TiffImage &LandsatImage::view_swir_layer() {
+  return get_image_layer("shortwave infrared");
+}
+
+const TiffImage &LandsatImage::view_termal_layer() {
+  return get_image_layer("thermal");
+}
+
+int LandsatImage::width() const {
+  return widht_;
+}
+
+int LandsatImage::height() const {
+  return height_;
 }

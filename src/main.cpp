@@ -27,54 +27,85 @@
 #include <thread>
 #include <chrono>
 #include <LandsatImage.hpp>
+#include <Utils.hpp>
 
 using namespace WaterCoherer;
 
-int main(int argc, char const *argv[]) {
+int main() {
   unsigned int cores = std::thread::hardware_concurrency();
-  std::cout << "Water Coherer: Application starting..." << std::endl;
-  std::cout << "Water Coherer: Using " << cores << " logical processors." << std::endl;
+  std::cout << "INFO Water Coherer: Application starting..." << std::endl;
+  std::cout << "INFO Water Coherer: Using " << cores << " logical processors." << std::endl;
 
-  LandsatImage image;
-  image.load_image("../data/LE71880252009264ASN00");
+  LandsatImage oldest_image;
+  oldest_image.load_image("../data/LE71880252009104ASN00");
+  LandsatImage medium_image;
+  medium_image.load_image("../data/LE71880252009232ASN00");
+  LandsatImage recent_image;
+  recent_image.load_image("../data/LE71880252009264ASN00");
 
   TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-    image.get_image_layer("green"), image.get_image_layer("near infrared"), NDWICalculator::Method::GreenNir, cores);
-  result.save("result.tiff");
+    recent_image.view_green_layer(), recent_image.view_nir_layer(),
+    NDWICalculator::Method::GreenNir, cores);
+  result.save("recent_localized_potential_water.tiff");
 
-  auto water_localization = NDWICalculator::localize_water(image.get_image_layer("green"), image.get_image_layer("near infrared"), cores);
-  std::cout << "Water Coherer: Localized " << water_localization.size() << " pixels of water."
+  PixelPositionsLayers localized_clouds =
+    {
+      {"oldest", CloudDetection::localize_clouds(oldest_image.view_red_layer(), cores)},
+      {"medium", CloudDetection::localize_clouds(medium_image.view_red_layer(), cores)},
+      {"recent", CloudDetection::localize_clouds(recent_image.view_red_layer(), cores)}
+    };
+
+  auto sumarized_cloud_positons = merge_pixel_positions_layers(localized_clouds);
+
+
+  auto water_localization_oldest = NDWICalculator::localize_water(cores,
+                                                                  oldest_image.view_green_layer(),
+                                                                  oldest_image.view_nir_layer(),
+                                                                  sumarized_cloud_positons);
+
+  WaterDifferencer differencer(water_localization_oldest);
+  differencer.generate_clasterized_water_layer(recent_image.view_nir_layer());
+
+  std::cout << "INFO Water Coherer: Localized " << water_localization_oldest.size()
+            << " pixels of water."
             << std::endl;
 
-  WaterDifferencer water_differencer(water_localization);
-  auto water_clasterized_water = water_differencer.generate_clasterized_water_layer(image.get_image_layer("near infrared"));
-  water_clasterized_water.save("water_clasterized.tiff");
+  auto water_localization_medium = NDWICalculator::localize_water(cores,
+                                                                  medium_image.view_green_layer(),
+                                                                  medium_image.view_nir_layer(),
+                                                                  sumarized_cloud_positons);
 
-//  TiffImage red_layer;
-//  red_layer.load_tiff(
-//    "../data/LE71880252009264ASN00/L71188025_02520090921_B10.TIF");
-//
-//  auto cloud_localization = CloudDetection::localize_clouds(red_layer, cores);
-//  auto cloud_layer = CloudDetection::generate_cloud_layer(cloud_localization,
-//                                                          red_layer.width(), red_layer.height());
+  std::cout << "INFO Water Coherer: Localized " << water_localization_medium.size()
+            << " pixels of water."
+            << std::endl;
 
-//  cloud_layer.save("clouds.tiff");
-  /*
-   *  auto cloud_layer_0101 = CloudDetection::localize_clouds(red_layer_0101, cores);
-   *  auto cloud_layer_0202 = CloudDetection::localize_clouds(red_layer_0202, cores);
-   *  auto cloud_layer_0303 = CloudDetection::localize_clouds(red_layer_0303, cores);
-   *
-   *  auto total_cloud_layer = sum(cloud_layer0101...0303);
-   *
-   *  auto water_localization_... = NDWICalculator::localize_water(
-   *    green_layer...,
-   *    nir_layer...,
-   *    cloud_layer_0101,
-   *    cores);
-   *
-   *   water_localization_0101.size() != water_localization_0202.size() !=
-   *   water_localization_0303.size()
-   */
+  auto water_localization_recent = NDWICalculator::localize_water(cores,
+                                                                  recent_image.view_green_layer(),
+                                                                  recent_image.view_nir_layer(),
+                                                                  sumarized_cloud_positons);
 
+  std::cout << "INFO Water Coherer: Localized " << water_localization_recent.size()
+            << " pixels of water."
+            << std::endl;
+
+  auto oldest_image_water = generate_layer(water_localization_oldest,
+                                           oldest_image.width(),
+                                           oldest_image.height());
+
+  auto medium_image_water = generate_layer(water_localization_medium,
+                                           medium_image.width(),
+                                           medium_image.height());
+
+  auto recent_image_water = generate_layer(water_localization_recent,
+                                           recent_image.width(),
+                                           recent_image.height());
+
+  auto common_clouds = generate_layer(sumarized_cloud_positons, oldest_image.width(),
+                                      oldest_image.height());
+
+  oldest_image_water.save_tiff("oldest_water.tif");
+  medium_image_water.save_tiff("medium_water.tif");
+  recent_image_water.save_tiff("recent_water.tif");
+  common_clouds.save_tiff("common_clouds.tif");
   return 0;
 }

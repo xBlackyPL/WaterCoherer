@@ -25,26 +25,36 @@
 #include <string>
 #include <set>
 
-using namespace WaterCoherer;
-
-PixelPositions merge_pixel_positions_layers(PixelPositionsLayers &found_water) {
-  PixelPositions result;
-  for (const auto &entry : found_water) {
-    PixelPositions pixel_set = entry.second;
-    std::merge(pixel_set.begin(), pixel_set.end(), result.begin(), result.end(), std::inserter(result, result.begin()));
+namespace WaterCoherer {
+  PixelPositions merge_pixel_positions_layers(PixelPositionsLayers &found_water) {
+    PixelPositions result;
+    for (const auto &entry : found_water) {
+      PixelPositions pixel_set = entry.second;
+      std::merge(pixel_set.begin(), pixel_set.end(), result.begin(), result.end(),
+                 std::inserter(result, result.begin()));
+    }
+    return result;
   }
-  return result;
-}
 
-std::vector<std::string> split(const std::string &string, char separator) {
-  std::vector<std::string> result;
-  std::string::size_type position = 0;
-  std::string::size_type previous_position = 0;
-  while ((position = string.find(separator, position)) != std::string::npos) {
-    std::string substring(string.substr(previous_position, position - previous_position));
-    result.push_back(substring);
-    previous_position = ++position;
+  std::vector<std::string> split(const std::string &string, char separator) {
+    std::vector<std::string> result;
+    std::string::size_type position = 0;
+    std::string::size_type previous_position = 0;
+    while ((position = string.find(separator, position)) != std::string::npos) {
+      std::string substring(string.substr(previous_position, position - previous_position));
+      result.push_back(substring);
+      previous_position = ++position;
+    }
+    result.push_back(string.substr(previous_position, position - previous_position));
+    return result;
   }
-  result.push_back(string.substr(previous_position, position - previous_position));
-  return result;
+
+  TiffImage generate_layer(const PixelPositions &cloud_positions, int width,
+    int height) {
+    TiffImage result(width, height, 1, 1);
+    for (const auto &cloud_pixel: cloud_positions) {
+      result(cloud_pixel.first, cloud_pixel.second) = 255;
+    }
+    return result;
+  }
 }

@@ -27,13 +27,24 @@
 namespace WaterCoherer {
   class LandsatImage {
   private:
+    int widht_ = 0;
+    int height_ = 0;
     std::string image_descripton_;
     ImageLayers image_layers_;
+    void push_back_image_layer(const TiffImage&, const std::string&, int);
+    const TiffImage& get_image_layer(const std::string&);
+
   public:
     LandsatImage() = default;
     ~LandsatImage() = default;
     void load_image(const char *input_directory_path);
-    void push_back_image_layer(const TiffImage&, unsigned char);
-    const TiffImage& get_image_layer(const std::string&);
+    int width() const;
+    int height() const;
+    const TiffImage& view_red_layer();
+    const TiffImage& view_green_layer();
+    const TiffImage& view_blue_layer();
+    const TiffImage& view_nir_layer();
+    const TiffImage& view_swir_layer();
+    const TiffImage& view_termal_layer();
   };
 }

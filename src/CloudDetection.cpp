@@ -56,13 +56,3 @@ PixelPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &im
   }
   return result;
 }
-
-TiffImage
-CloudDetection::generate_cloud_layer(const PixelPositions &cloud_positions, unsigned
-int width, unsigned int height) {
-  TiffImage result(width, height, 1, 1);
-  for (const auto &cloud_pixel: cloud_positions) {
-    result(cloud_pixel.first, cloud_pixel.second) = 255;
-  }
-  return result;
-}
