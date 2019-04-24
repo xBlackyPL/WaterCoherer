@@ -73,7 +73,7 @@ TiffImage &nir_layer) {
 
       if (green_value > 1.f && nir_value > 1.f) {
         float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-        if (ndwi_level >= 0.3f) {
+        if (ndwi_level >= 0.33f) {
           result(static_cast<unsigned int>(x), static_cast<unsigned int>(y)) = 255;
         }
       }
@@ -106,7 +106,7 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
 
             if (green_value > 1.f && nir_value > 1.f) {
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-              result(x, y) = static_cast<unsigned char>(ndwi_level >= 0.3f ? 255 : 0);
+              result(x, y) = static_cast<unsigned char>(ndwi_level >= 0.33f ? 255 : 0);
             }
           }
         }
@@ -140,7 +140,7 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores,
 
             if (green_value > 1.f && nir_value > 1.f) {
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-              if (ndwi_level >= 0.3f) {
+              if (ndwi_level >= 0.33f) {
                 std::lock_guard<std::mutex> guard(result_mutex);
                 result.insert({x, y});
               }
@@ -182,7 +182,7 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores, const TiffImag
 
             if (green_value > 1.f && nir_value > 1.f) {
               float ndwi_level = (green_value - nir_value) / (green_value + nir_value);
-              if (ndwi_level >= 0.3f) {
+              if (ndwi_level >= 0.33f) {
                 std::lock_guard<std::mutex> guard(result_mutex);
                 result.insert({x, y});
               }

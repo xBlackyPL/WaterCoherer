@@ -51,10 +51,6 @@ void LandsatImage::load_image(const char *input_directory_path) {
       auto input_image_file_path = directory_path + "/" + file_name;
       TiffImage image_layer{};
       image_layer.load_tiff(input_image_file_path.c_str());
-      if(widht_ == 0 || height_ == 0) {
-        widht_ = image_layer.width();
-        height_ = image_layer.height();
-      }
       push_back_image_layer(image_layer, input_image_file_path, layer_index);
     }
   } while (nullptr != (file = readdir(directory)));
@@ -64,6 +60,20 @@ void LandsatImage::load_image(const char *input_directory_path) {
 void LandsatImage::push_back_image_layer(const TiffImage& image_layer, const std::string& path,
   int layer_index) {
   if (nullptr != image_layer.data()) {
+    switch (layer_index)
+    {
+      case 1 ... 6:
+        if(widht_ == 0 || height_ == 0) {
+          widht_ = image_layer.width();
+          height_ = image_layer.height();
+        }
+        break;
+      default:
+        std::cerr << "WARNING WaterCoherer: Omitted input image layer:\n" << "\t" + path <<
+        std::endl;
+        return;
+    }
+
     switch (layer_index) {
       case 1:
         image_layers_.insert({std::string("red"), image_layer});
@@ -85,7 +95,7 @@ void LandsatImage::push_back_image_layer(const TiffImage& image_layer, const std
         break;
       default:
         std::cerr << "WARNING WaterCoherer: Omitted input image layer:\n" << "\t" + path <<
-        std::endl;
+                  std::endl;
     }
   }
 }
