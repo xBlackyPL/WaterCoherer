@@ -37,22 +37,19 @@ int main() {
   std::cout << "INFO Water Coherer: Using " << cores << " logical processors." << std::endl;
 
   LandsatImage oldest_image;
-  oldest_image.load_image("../data/LE71880252009104ASN00");
+  oldest_image.load_image("../data/LE71880252009232ASN00");
+
   LandsatImage medium_image;
-  medium_image.load_image("../data/LE71880252009232ASN00");
+  medium_image.load_image("../data/LE71880252009104ASN00");
+
   LandsatImage recent_image;
   recent_image.load_image("../data/LE71880252009264ASN00");
 
-  TiffImage result = NDWICalculator::generate_ndwi_layer_high_performance(
-    recent_image.view_green_layer(), recent_image.view_nir_layer(),
-    NDWICalculator::Method::GreenNir, cores);
-  result.save("recent_localized_potential_water.tiff");
-
   PixelPositionsLayers localized_clouds =
     {
-      {"oldest", CloudDetection::localize_clouds(oldest_image.view_red_layer(), cores)},
-      {"medium", CloudDetection::localize_clouds(medium_image.view_red_layer(), cores)},
-      {"recent", CloudDetection::localize_clouds(recent_image.view_red_layer(), cores)}
+      {"oldest", CloudDetection::localize_clouds(oldest_image.view_blue_layer(), cores)},
+      {"medium", CloudDetection::localize_clouds(medium_image.view_blue_layer(), cores)},
+      {"recent", CloudDetection::localize_clouds(recent_image.view_blue_layer(), cores)}
     };
 
   auto sumarized_cloud_positons = merge_pixel_positions_layers(localized_clouds);
@@ -62,9 +59,6 @@ int main() {
                                                                   oldest_image.view_green_layer(),
                                                                   oldest_image.view_nir_layer(),
                                                                   sumarized_cloud_positons);
-
-  WaterDifferencer differencer(water_localization_oldest);
-  differencer.generate_clasterized_water_layer(recent_image.view_nir_layer());
 
   std::cout << "INFO Water Coherer: Localized " << water_localization_oldest.size()
             << " pixels of water."
@@ -83,6 +77,10 @@ int main() {
                                                                   recent_image.view_green_layer(),
                                                                   recent_image.view_nir_layer(),
                                                                   sumarized_cloud_positons);
+
+  WaterDifferencer differencer(water_localization_recent);
+  differencer.generate_clasterized_water_layer(recent_image.view_nir_layer()).save_tiff
+    ("different_water_types.tif");
 
   std::cout << "INFO Water Coherer: Localized " << water_localization_recent.size()
             << " pixels of water."

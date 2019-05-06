@@ -31,5 +31,5 @@ namespace WaterCoherer {
 
   std::vector<std::string> split(const std::string &, char);
 
-  TiffImage generate_layer(const PixelPositions &cloud_positions, int width, int height);
+  TiffImage generate_layer(const PixelPositions &pixel_positions, int width, int height);
 }

@@ -49,11 +49,11 @@ namespace WaterCoherer {
     return result;
   }
 
-  TiffImage generate_layer(const PixelPositions &cloud_positions, int width,
+  TiffImage generate_layer(const PixelPositions &pixel_positions, int width,
     int height) {
     TiffImage result(width, height, 1, 1);
-    for (const auto &cloud_pixel: cloud_positions) {
-      result(cloud_pixel.first, cloud_pixel.second) = 255;
+    for (const auto &pixel: pixel_positions) {
+      result(pixel.first, pixel.second) = 255;
     }
     return result;
   }

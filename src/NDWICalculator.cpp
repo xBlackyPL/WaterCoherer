@@ -81,17 +81,17 @@ TiffImage &nir_layer) {
   return result;
 }
 
-TiffImage NDWICalculator::generate_ndwi_layer_nir_swir_high_performance(
-  const TiffImage &nir_layer, const TiffImage &swir_layer, unsigned int cores) {
-  // TODO: Implement high_performance method for ndwi/swir layers.
-  return generate_ndwi_layer_green_nir(nir_layer, swir_layer);
-}
-
 TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
   const TiffImage &green_layer, const TiffImage &nir_layer, unsigned int cores) {
   std::vector<std::thread> thread_pool;
-  TiffImage result(green_layer.width(), green_layer.height(), 1, 1);
 
+  auto start = std::chrono::system_clock::now();
+  TiffImage result(green_layer.width(), green_layer.height(), 1, 1);
+  auto stop = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration<double>(stop - start);
+  std::cout << std::to_string(elapsed.count()) + ",";
+
+  start = std::chrono::system_clock::now();
   for (unsigned int i = 0UL; i < cores; ++i) {
     thread_pool.emplace_back(
       std::thread([i, cores, &result, &green_layer, &nir_layer]() {
@@ -116,6 +116,9 @@ TiffImage NDWICalculator::generate_ndwi_layer_green_nir_high_performance(
   for (auto &&thread : thread_pool) {
     thread.join();
   }
+  stop = std::chrono::system_clock::now();
+  elapsed = std::chrono::duration<double>(stop - start);
+  std::cout << std::to_string(elapsed.count()) + ",";
   return result;
 }
 
@@ -125,7 +128,7 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores,
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
   PixelPositions result;
-
+  auto start = std::chrono::system_clock::now();
   for (unsigned int i = 0UL; i < cores; ++i) {
     thread_pool.emplace_back(
       std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex]() {
@@ -153,6 +156,9 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores,
   for (auto &&thread : thread_pool) {
     thread.join();
   }
+  auto stop = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration<double>(stop - start);
+  std::cout << std::to_string(elapsed.count()) + ",";
 
   return result;
 }
@@ -163,7 +169,6 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores, const TiffImag
   std::vector<std::thread> thread_pool;
   std::mutex result_mutex;
   PixelPositions result;
-
   for (unsigned int i = 0UL; i < cores; ++i) {
     thread_pool.emplace_back(
       std::thread([i, cores, &result, &green_layer, &nir_layer, &result_mutex, &omitted_pixels]() {
@@ -195,7 +200,6 @@ PixelPositions NDWICalculator::localize_water(unsigned int cores, const TiffImag
   for (auto &&thread : thread_pool) {
     thread.join();
   }
-
   return result;
 }
 
@@ -219,7 +223,7 @@ TiffImage NDWICalculator::generate_ndwi_layer_high_performance(const TiffImage &
     case Method::GreenNir:
       return generate_ndwi_layer_green_nir_high_performance(img1, img2, cores);
     case Method::NirSwir:
-      return generate_ndwi_layer_nir_swir_high_performance(img1, img2, cores);
+      // return generate_ndwi_layer_nir_swir_high_performance(img1, img2, cores);
     default:
       std::cerr << "NDWI Calculator - High performance: Invalid method!" << std::endl;
       std::exit(1);

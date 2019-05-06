@@ -42,7 +42,11 @@ PixelPositions CloudDetection::localize_clouds(const WaterCoherer::TiffImage &im
         for (unsigned int y = start; y < stop - 1; ++y) {
           for (unsigned int x = 0; x < static_cast<unsigned int>(image_layer.width()); ++x) {
             float value = image_layer(x, y);
-            if (value > 120) {
+            if(value < 1.f )
+            {
+              continue;
+            }
+            if (value > 120.f) {
               std::lock_guard<std::mutex> guard(result_mutex);
               result.insert({x, y});
             }

@@ -76,13 +76,13 @@ void LandsatImage::push_back_image_layer(const TiffImage& image_layer, const std
 
     switch (layer_index) {
       case 1:
-        image_layers_.insert({std::string("red"), image_layer});
+        image_layers_.insert({std::string("blue"), image_layer});
         break;
       case 2:
         image_layers_.insert({std::string("green"), image_layer});
         break;
       case 3:
-        image_layers_.insert({std::string("blue"), image_layer});
+        image_layers_.insert({std::string("red"), image_layer});
         break;
       case 4:
         image_layers_.insert({std::string("near infrared"), image_layer});
